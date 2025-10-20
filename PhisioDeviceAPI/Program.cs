@@ -61,15 +61,27 @@ builder.Services.AddSwaggerGen(options =>
 // ✅ Correct AutoMapper registration
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=WIN-LGO4FUTEETN\\SQLEXPRESS;Database=PhisioDeviceDb;User ID=sa;Password=123;MultipleActiveResultSets=True;TrustServerCertificate=True";
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+//    ?? "Server=WIN-LGO4FUTEETN\\SQLEXPRESS;Database=PhisioDeviceDb;User ID=sa;Password=123;MultipleActiveResultSets=True;TrustServerCertificate=True";
 
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //{
 //    options.UseSqlServer(connectionString);
 //});
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (builder.Environment.IsProduction())
+{
+    // Render environment -> PostgreSQL
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    // Local development -> SQL Server
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(connectionString));
+}
 
 
 // Repositories & Services for registration

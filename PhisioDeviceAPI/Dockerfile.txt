@@ -1,16 +1,16 @@
-﻿# Use the official .NET 8 SDK image to build the app
+﻿# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the project files and restore dependencies
+# Copy project files and restore dependencies
 COPY PhisioDeviceAPI/*.csproj PhisioDeviceAPI/
 RUN dotnet restore PhisioDeviceAPI/PhisioDeviceAPI.csproj
 
-# Copy everything else and build
+# Copy all files and publish
 COPY . .
 RUN dotnet publish PhisioDeviceAPI/PhisioDeviceAPI.csproj -c Release -o /app/publish
 
-# Use the smaller runtime image for final container
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
@@ -19,5 +19,5 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# Start your app
+# Run the app
 ENTRYPOINT ["dotnet", "PhisioDeviceAPI.dll"]
