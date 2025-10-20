@@ -1,22 +1,23 @@
-﻿# Build stage: compile and publish the .NET app
+﻿# Use the official .NET 8 SDK image to build the app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copy everything and restore dependencies
+# Copy the project files and restore dependencies
+COPY PhisioDeviceAPI/*.csproj PhisioDeviceAPI/
+RUN dotnet restore PhisioDeviceAPI/PhisioDeviceAPI.csproj
+
+# Copy everything else and build
 COPY . .
-RUN dotnet restore
+RUN dotnet publish PhisioDeviceAPI/PhisioDeviceAPI.csproj -c Release -o /app/publish
 
-# Build and publish the app
-RUN dotnet publish -c Release -o /app/publish
-
-# Runtime stage: use the smaller ASP.NET runtime image
+# Use the smaller runtime image for final container
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Tell ASP.NET Core to listen on port 8080 (Render requirement)
+# Render requires port 8080
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# Start the app
+# Start your app
 ENTRYPOINT ["dotnet", "PhisioDeviceAPI.dll"]
