@@ -1,23 +1,23 @@
-﻿# Build stage
+﻿# Stage 1: Build the app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy project files and restore dependencies
-COPY PhisioDeviceAPI/*.csproj PhisioDeviceAPI/
+# Copy only the project file first and restore dependencies
+COPY PhisioDeviceAPI/PhisioDeviceAPI.csproj PhisioDeviceAPI/
 RUN dotnet restore PhisioDeviceAPI/PhisioDeviceAPI.csproj
 
-# Copy all files and publish
+# Copy everything else and publish
 COPY . .
 RUN dotnet publish PhisioDeviceAPI/PhisioDeviceAPI.csproj -c Release -o /app/publish
 
-# Runtime stage
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render requires port 8080
+# Expose port 8080 (Render requires this)
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# Run the app
+# Start the app
 ENTRYPOINT ["dotnet", "PhisioDeviceAPI.dll"]
