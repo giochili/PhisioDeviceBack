@@ -64,10 +64,13 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Server=WIN-LGO4FUTEETN\\SQLEXPRESS;Database=PhisioDeviceDb;User ID=sa;Password=123;MultipleActiveResultSets=True;TrustServerCertificate=True";
 
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//{
+//    options.UseSqlServer(connectionString);
+//});
 builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlServer(connectionString);
-});
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 // Repositories & Services for registration
 builder.Services.AddScoped<IUserRepository, UserRepository>();
